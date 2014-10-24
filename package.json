@@ -8,17 +8,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/eightmedia/grunt-styleguidejs.git"
+    "url": "git://github.com/chopstikk/grunt-styleguidejs.git"
   },
-  "bugs": {
-    "url": "https://github.com/eightmedia/grunt-styleguidejs/issues"
-  },
-  "main": "Gruntfile.js",
   "engines": {
     "node": ">= 0.8.0"
-  },
-  "scripts": {
-    "test": "grunt test"
   },
   "dependencies": {
     "cheerio": "~0.12.3",
