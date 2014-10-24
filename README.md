@@ -27,10 +27,9 @@ grunt.initConfig
     custom_options:
       options: {
         title: 'Custom Styleguide'
-        includejs: ['modernizr.js','jquery.js']
-        customCSS: 'test/fixtures/custom-css/style.css'
-        appendCustomCSS: ['test/fixtures/custom-css/append-style.css'],
-        templateFile: 'styleguide/styleguide.jade',
+        extraJs: ['modernizr.js','jquery.js']
+        extraCss: 'test/fixtures/custom-css/style.css'
+        template: 'styleguide/styleguide.jade',
         preprocess: function(sections) {
           for (var i = 0; i < sections.length; i++) {
             sections[i].title += " (" + sections[i].guides.length + ")";
@@ -53,7 +52,7 @@ body {
   title: Square buttons
   section: Buttons
   description: Very pretty square buttons
-  example:
+  example: |
     <a href="" class="btn btn-small">button</a>
     <a href="" class="btn btn-medium">button</a>
     <a href="" class="btn btn-large">button</a>
@@ -85,7 +84,7 @@ body {
   title: Round buttons
   section: Buttons
   description: Very pretty rounded buttons
-  example:
+  example: |
     <a href="" class="btn btn-small btn-round">button</a>
     <a href="" class="btn btn-medium btn-round">button</a>
     <a href="" class="btn btn-large btn-round">button</a>
@@ -99,6 +98,7 @@ body {
 /***
   title: Links
   section: Buttons
+  id: btn-link
   description: Very pretty rounded buttons
   example:
     <a href="" class="btn-link">button</a>
@@ -113,22 +113,18 @@ body {
 }
 
 /***
-  title: Internal anchor
-  section: References
-  description: Reference to anchor in the same section
-  example:
-    - <ul>
-    - &li |
-      <li>list item</li>
-    - *li
-    - *li
-    - *li
-    - *li
-    - </ul>
+  title: Includes
+  section: Includes
+  description: Include example code from other items. You can refer to any attribute(set), like 'id'
+  example: |
+    <div class="btn-group">
+        <include title="Links" section="Buttons">
+        <include title="Links" section="Buttons">
+        <include id="btn-link">
+    </div>
 ***/
-
-li{
-  color: darkslateblue;
+.btn-group .btn-link {
+    background: green;
 }
 ````
 

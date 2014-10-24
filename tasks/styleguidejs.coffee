@@ -1,14 +1,89 @@
+fs = require 'fs'
+cons = require 'consolidate'
+marked = require 'marked'
+_ = require 'lodash'
+
 'use strict';
 
 module.exports = (grunt) ->
 
   StyleGuide = require('styleguidejs')
 
+  # override defaults from styleguidejs
+  StyleGuide.defaultOptions =
+    groupBy: "section"
+    sortBy: [
+      "section"
+      "title"
+    ]
+    engine: "jade"
+    extraJs: []
+    extraCss: []
+    outputFile: null
+    template: __dirname + '/../node_modules/styleguidejs/lib/template/index.jade'
+    templateCss: __dirname + '/../node_modules/styleguidejs/lib/template/styleguide.css'
+    templateJs: __dirname + '/../node_modules/styleguidejs/lib/template/styleguide.js'
+
+
+  # override render method from styleguidejs
+  StyleGuide.prototype.render = (options, callback) ->
+
+    options = @options = _.defaults(options or {}, StyleGuide.defaultOptions)
+
+    # fetch the extra js files
+    extraJs = []
+    options.extraJs.forEach (file) ->
+      extraJs.push readFileSync(file)
+      return
+
+
+    # append the extra stylesheets to the source
+    options.extraCss.forEach ((file) ->
+      @addFile file
+      return
+    ), this
+
+    source = @parseSource()
+    source = @parseHtmlIncludes(source)
+
+    # data to send to the template
+    data =
+      marked: marked
+      options: options
+      docs: @groupSort(source)
+      css: @sources.join(" ")
+      js: extraJs.join("; ")
+      templateCss: readFileSync(options.templateCss)
+      templateJs: readFileSync(options.templateJs)
+
+    if options.preprocess
+      options.preprocess.call(grunt, data.docs);
+
+    # template
+    cons[options.engine] options.template, data, (err, html) ->
+
+      if callback
+        callback err, html
+      if err
+        throw err
+      if options.outputFile
+        fs.writeFileSync options.outputFile, html,
+          encoding: "utf8"
+
+      return
+
+    return
+
+  readFileSync = (file) ->
+    fs.readFileSync file,
+      encoding: "utf8"
+
 
   # ---
   # grunt task
 
   grunt.registerMultiTask 'styleguidejs', 'Generate nice styleguide', ->
+    task = this
     options = @options {
       title: 'Styleguide'
       includejs: []
@@ -26,36 +101,10 @@ module.exports = (grunt) ->
 
         .forEach (filepath) ->
 
-          # create styleguide
-          s = new StyleGuide(options.title)
-
-          # parse css file
-          s.parseFile(filepath)
-
-          # preprocess parsed yaml
-          if options.preprocess
-            options.preprocess.call(grunt, s.sections);
-
-          # include js
-          for jsfile in options.includejs
-            if grunt.file.exists(jsfile)
-              s.includeJS(jsfile)
-
-
-          # custom css
-          if options.customCSS
-            s.customCSS(options.customCSS)
-
-          # append custom css
-          for append in options.appendCustomCSS
-            if grunt.file.exists(append)
-              s.appendCustomCSS(append)
-
-
-          # create file for first time
-          if not grunt.file.exists(f.dest)
-            grunt.file.write(f.dest)
+          s = new StyleGuide()
+          s.addFile(filepath)
 
           # render file
-          s.renderToFile(f.dest, options.templateFile)
-          
+          s.render task.options({
+            outputFile: f.dest
+          })
