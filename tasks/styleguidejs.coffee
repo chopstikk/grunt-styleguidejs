@@ -57,7 +57,7 @@ module.exports = (grunt) ->
       templateJs: readFileSync(options.templateJs)
 
     if options.preprocess
-      options.preprocess.call(grunt, data.docs);
+      options.preprocess.call(grunt, data);
 
     # template
     cons[options.engine] options.template, data, (err, html) ->
